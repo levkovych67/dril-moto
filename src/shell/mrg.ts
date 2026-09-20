@@ -95,7 +95,11 @@ export const decodeMrg = (buffer: ArrayBuffer): MrgPack => {
       const offset = view.getInt32(p)
       p += 4
       let name = ''
-      while (bytes[p] !== 0) name += String.fromCharCode(bytes[p++])
+      // LevelLoader відводить 40 байтів на назву разом з NUL. Не можна
+      // читати за кінець Uint8Array: undefined ніколи не дорівнює 0.
+      const nameLimit = Math.min(p + 40, bytes.length)
+      while (p < nameLimit && bytes[p] !== 0) name += String.fromCharCode(bytes[p++])
+      if (p === nameLimit) throw new Error('некоректний .mrg: назва має завершуватися NUL не пізніше 39 байтів')
       p++
       entries[l].push({ name, offset })
     }

@@ -51,6 +51,25 @@ check('назва в .mrg лише ASCII', () => {
   assert.throws(() => encodeMrg({ leagues: [[{ ...simple, name: 'x'.repeat(40) }], [], []] }), /ASCII/)
 })
 
+check('декодер відхиляє обірвану назву .mrg', () => {
+  assert.throws(
+    () => decodeMrg(Uint8Array.from([0, 0, 0, 1, 0, 0, 0, 9, 65]).buffer),
+    /назва має завершуватися NUL/,
+  )
+})
+
+check('декодер відхиляє NUL після 40 байтів назви', () => {
+  const header = Uint8Array.from([0, 0, 0, 1, 0, 0, 0, 49])
+  const name = Uint8Array.from([...Array(40)].map(() => 65).concat(0))
+  assert.throws(() => decodeMrg(Uint8Array.from([...header, ...name]).buffer), /назва має завершуватися NUL/)
+})
+
+check('39-байтова назва проходить round-trip', () => {
+  const boundary = { ...simple, name: 'x'.repeat(39) }
+  const boundaryPack = { leagues: [[boundary], [], []] }
+  assert.deepEqual(decodeMrg(encodeMrg(boundaryPack)), boundaryPack)
+})
+
 const valid = { name: 'A', start: [100, 18], finish: [300, 0], points: [[0, 0], [150, 0], [250, 0], [300, 0], [500, 0]] }
 
 check('parseTrackJson приймає правильний трек і ловить помилки геометрії', () => {

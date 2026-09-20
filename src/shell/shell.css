@@ -55,6 +55,14 @@ body,
   touch-action: pan-y; /* довгі меню (рекорди) гортаються пальцем, зум жестами — ні */
   background: var(--background, #fff);
 }
+/* Auto-відступи центрують меню, яке вміщується. За переповнення вони стають
+   нульовими, тож перший і останній елементи лишаються в досяжній області скролу. */
+.screen > :first-child {
+  margin-top: auto;
+}
+.screen > :last-child {
+  margin-bottom: auto;
+}
 /* пауза й фініш — поверх замороженого кадру заїзду: гру видно крізь шар */
 .screen[data-screen='pause'],
 .screen[data-screen='finish'] {
