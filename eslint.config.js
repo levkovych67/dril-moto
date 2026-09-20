@@ -12,8 +12,19 @@ export default defineConfig([
       tseslint.configs.recommended,
     ],
     languageOptions: {
-      ecmaVersion: 2020,
+      ecmaVersion: 2022,
       globals: globals.browser,
+    },
+    rules: {
+      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+    },
+  },
+  {
+    files: ['src/*.ts', 'src/lcdui/**/*.ts', 'src/rms/**/*.ts', 'src/utils/**/*.ts'],
+    rules: {
+      'no-empty': 'off',
+      'prefer-const': 'off',
+      'no-self-assign': 'off',
     },
   },
 ])

@@ -1,0 +1,42 @@
+[hidden] {
+  display: none !important;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #f4f4f4;
+}
+
+.stage {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.game-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  image-rendering: pixelated;
+  touch-action: none;
+  background: #fff;
+}
+
+.hud {
+  position: absolute;
+  top: 12px;
+  right: 16px;
+  font: 500 18px/1 system-ui, sans-serif;
+  pointer-events: none;
+}
+
+.error-view {
+  margin: 16px;
+  white-space: pre-wrap;
+  font: 13px/1.4 ui-monospace, monospace;
+}
