@@ -1,7 +1,16 @@
 # Changelog
 
-## Unreleased
+## 0.1.0
 
-- Форк від upstream `889a0914da5fd40405190907e493fc6be72c38a2` без асетів Codebrew (levels.mrg, logo, splash, спрайти байка); плейсхолдери спрайтів тих самих розмірів; енкодер/декодер `.mrg`; дев-пак із JSON-треків.
-- Шаблони спрайтів для дизайнера: `docs/sprites.md`, `docs/sprite-templates/*@8x.png` (`npm run sprites:template`).
-- Правила геометрії JSON-треку (`src/shell/trackJson.ts`) і безголовий прогін треків на фізиці двигуна: `scripts/sim-track.mjs` (`npm run sim`), водії ai, «лише газ», бот і планувальник.
+- Форк від upstream (коміт — у NOTICE.md) без асетів Codebrew (levels.mrg, лого, сплеш,
+  спрайти байка); плейсхолдери спрайтів тих самих розмірів; енкодер/декодер `.mrg`; дев-пак
+  із JSON-треків.
+- Оболонка `src/shell/`: двигун без канвасних меню, цикл заїзду з паузою й відліком після
+  падіння, DOM-меню українською, сплеш, прогрес і відкриття треків і ліг, рекорди.
+- Тач-керування з pointer capture і мультитачем, підказка клавіш на десктопі, вібрація на падінні.
+- Параметри URL (`tracks`, `ns`, `lang`, `theme`, `debug`, `json`), індекс українських назв
+  треків, міст `postMessage` до сайту (`ready`, `exit`, `finished`).
+- Тема й шрифт сайту: токени в `src/shell/theme.css`, палітра канвасу через `GameCanvas.colorMap`,
+  e-Ukraine; рендер у devicePixelRatio (до 2).
+- Шаблони спрайтів і `docs/sprites.md`; безголовий прогін треків `scripts/sim-track.mjs` (водії ai,
+  «лише газ», бот і планувальник); реліз через GitHub Actions з `dist.zip`.

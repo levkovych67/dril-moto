@@ -1,0 +1,37 @@
+# .github/workflows/release.yml — тег vX.Y.Z → перевірки, збірка, GitHub Release з dist.zip.
+# У dist.zip файли лежать у корені архіву (index.html, assets/, fonts/, LICENSE.txt, NOTICE.txt).
+# На сайті його ставить scripts/sync-moto-bundle.mjs --tag vX.Y.Z (перевірки, public/moto/ без tracks/, VERSION).
+name: release
+on:
+  push:
+    tags: ['v*']
+permissions:
+  contents: write
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - name: Тег збігається з версією в package.json
+        run: test "$GITHUB_REF_NAME" = "v$(node -p "require('./package.json').version")"
+      - name: LICENSE.txt і NOTICE.txt у public/ — копії LICENSE.md і NOTICE.md
+        run: cmp LICENSE.md public/LICENSE.txt && cmp NOTICE.md public/NOTICE.txt
+      - name: Перевірки (check-mrg, check-race-loop, check-progress, check-palette)
+        run: npm run check
+      - run: npm run lint
+      - run: npm run build
+      - name: У бандлі нема паків треків (ні файлом, ні вбудованим data:-URI), лого й сплешу
+        run: |
+          if find dist -name '*.mrg' -o -name 'logo*' -o -name 'splash*' | grep .; then exit 1; fi
+          if grep -l 'data:application/octet-stream' dist/assets/*.js; then exit 1; fi
+      - name: dist.zip (вміст dist/ у корені архіву)
+        run: cd dist && zip -r ../dist.zip .
+      - name: GitHub Release
+        run: gh release create "$GITHUB_REF_NAME" dist.zip --title "Дріл Мото $GITHUB_REF_NAME" --notes "Зміни — CHANGELOG.md. На сайті: node scripts/sync-moto-bundle.mjs --tag $GITHUB_REF_NAME"
+        env:
+          GH_TOKEN: ${{ github.token }}
