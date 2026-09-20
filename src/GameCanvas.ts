@@ -16,6 +16,9 @@ import BLUEBODY_URL from './assets/bluebody.png?url'
 import ENGINE_URL from './assets/engine.png?url'
 import FENDER_URL from './assets/fender.png?url'
 
+/** Перефарбовування кольорів порту; оболонка ставить токени сайту (src/shell/palette.ts). */
+export type ColorMap = (red: number, green: number, blue: number) => readonly [number, number, number]
+
 type GameCanvasAssetCaches = {
   helmetImage: Image
   spritesImage: Image
@@ -76,6 +79,7 @@ export class GameCanvas {
   private inputMode = 2
   private readonly activeActions = new Array<boolean>(7).fill(false)
   private readonly activeKeys = new Array<boolean>(10).fill(false)
+  private dpr = 1
 
   width: number
   height2: number
@@ -84,6 +88,7 @@ export class GameCanvas {
   helmetSpriteWidth: number
   helmetSpriteHeight: number
   isDrawingTime = true
+  colorMap: ColorMap | null = null
   splashImage: Image | null
   logoImage: Image | null
   bodyPartsImages: Array<Image | null> = [null, null, null]
@@ -146,11 +151,19 @@ export class GameCanvas {
   }
 
   resize(width: number, height: number): void {
-    this.canvas.width = width
-    this.canvas.height = height
+    // Буфер у фізичних пікселях (до 2×), уся логіка двигуна — у CSS-пікселях.
+    // Запис canvas.width скидає стан контексту (трансформацію, imageSmoothingEnabled),
+    // тому масштаб і вимкнене згладжування заново ставить beginFrame на кожному кадрі.
+    this.dpr = Math.min(2, window.devicePixelRatio || 1)
+    this.canvas.width = Math.floor(width * this.dpr)
+    this.canvas.height = Math.floor(height * this.dpr)
+    this.canvas.style.width = `${width}px`
+    this.canvas.style.height = `${height}px`
     this.width = width
     this.height = height
     this.height2 = height
+    // кліп Graphics живе між кадрами; без цього перший кадр після збільшення обрізаний старим розміром
+    this.graphics.setClip(0, 0, width, height)
   }
 
   getWidth(): number {
@@ -170,8 +183,11 @@ export class GameCanvas {
     void this.cameraOffsetX
     void this.cameraOffsetY
     void this.loadingScreenMode
+    // clearRect — в одиничній трансформації по сирому буферу, далі все малюється в CSS-пікселях
     this.ctx.setTransform(1, 0, 0, 1, 0, 0)
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
+    this.ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0)
+    this.ctx.imageSmoothingEnabled = false
     this.processTimers()
   }
 
@@ -457,7 +473,7 @@ export class GameCanvas {
   }
 
   clearScreenWithWhite(): void {
-    this.graphics.setColor(255, 255, 255)
+    this.applyColor(255, 255, 255)
     this.graphics.fillRect(0, 0, this.width, this.height2)
   }
 
@@ -477,7 +493,16 @@ export class GameCanvas {
       }
     }
 
-    this.graphics.setColor(red, green, blue)
+    this.applyColor(red, green, blue)
+  }
+
+  private applyColor(red: number, green: number, blue: number): void {
+    if (this.colorMap === null) {
+      this.graphics.setColor(red, green, blue)
+      return
+    }
+    const [r, g, b] = this.colorMap(red, green, blue)
+    this.graphics.setColor(r, g, b)
   }
 
   drawProgressBar(var1: number, mode: boolean): void {

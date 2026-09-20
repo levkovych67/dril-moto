@@ -9,7 +9,7 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "check": "node scripts/check-mrg.mjs && node scripts/check-race-loop.mjs && node scripts/check-progress.mjs",
+    "check": "node scripts/check-mrg.mjs && node scripts/check-race-loop.mjs && node scripts/check-progress.mjs && node scripts/check-palette.mjs",
     "sim": "node scripts/sim-track.mjs",
     "dev-pack": "node scripts/build-dev-pack.mjs",
     "sprites:placeholder": "node scripts/make-placeholder-sprites.mjs",

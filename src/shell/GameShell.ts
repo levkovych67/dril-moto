@@ -5,6 +5,7 @@ import { bridge } from './bridge.ts'
 import { readConfig, type Config } from './config.ts'
 import { createEngine } from './engine.ts'
 import { loadPack } from './pack.ts'
+import { applyPalette } from './palette.ts'
 import { bestKey, emptyProgress, isTrackUnlocked, loadProgress, recordFinish, resetProgress, saveProgress, type Progress } from './Progress.ts'
 import { RaceSession } from './RaceSession.ts'
 import { el } from './screens/dom.ts'
@@ -70,6 +71,7 @@ export class GameShell {
     this.counts = [pack.names[0].length, pack.names[1].length, pack.names[2].length]
     this.progress = loadProgress(this.ns)
     const engine = await createEngine(canvas, pack.buffer)
+    applyPalette(engine.canvas, document.documentElement) // після data-theme: токени вже теми
     this.session = new RaceSession(
       engine,
       {
