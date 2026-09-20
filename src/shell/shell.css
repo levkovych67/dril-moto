@@ -307,3 +307,13 @@ body,
   font-size: 14px;
   white-space: nowrap;
 }
+
+/* Task 10: лічильник кадрів у ?debug */
+.hud-fps {
+  position: absolute;
+  top: 68px;
+  left: 16px;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-secondary, #606060);
+}

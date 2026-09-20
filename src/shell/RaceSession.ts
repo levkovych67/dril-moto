@@ -2,6 +2,7 @@
 // тач-кнопки, клавіатура, тап-рестарт після падіння і пауза при прихованій вкладці.
 // Екранами меню не керує: про паузу й фініш повідомляє GameShell через RaceSessionEvents.
 import type { Engine } from './engine.ts'
+import { FpsMeter } from './FpsMeter.ts'
 import { bindKeyboard } from './keyboard.ts'
 import { RaceLoop } from './RaceLoop.ts'
 import { strings } from './strings.uk.ts'
@@ -25,20 +26,25 @@ export class RaceSession {
   private readonly hud: RaceHud
   private readonly touch: TouchControls
   private readonly race: RaceLoop
+  private readonly fps: FpsMeter | null
   // тач-кнопки лише на сенсорних екранах; на десктопі — рядок клавіш у HUD
   private readonly coarse = window.matchMedia('(pointer: coarse)').matches
   private visible = false
 
-  constructor(engine: Engine, events: RaceSessionEvents) {
+  constructor(engine: Engine, events: RaceSessionEvents, debug: boolean) {
     this.engine = engine
     this.events = events
     this.hud = new RaceHud(() => this.pause())
+    this.fps = debug ? new FpsMeter() : null
     this.touch = new TouchControls(
       (code) => engine.canvas.keyPressed(code),
       (code) => engine.canvas.keyReleased(code),
     )
     this.race = new RaceLoop(engine, {
-      onTick: (ms) => this.hud.setTime(ms),
+      onTick: (ms) => {
+        this.hud.setTime(ms)
+        this.fps?.tick(performance.now())
+      },
       // спека, секція 5: коротка вібрація на падінні там, де вона є (iOS Safari — ні)
       onCrash: () => {
         if (typeof navigator.vibrate === 'function') navigator.vibrate(40)
@@ -60,6 +66,7 @@ export class RaceSession {
   /** HUD і тач-шар — у stage над канвасом; клавіатура, тап по канвасу, пауза при прихованій вкладці. */
   mount(stage: HTMLElement, canvas: HTMLCanvasElement): void {
     if (!this.coarse) this.hud.root.append(el('div', 'hud-keys', strings.controls.keys))
+    if (this.fps !== null) this.hud.root.append(this.fps.root)
     stage.append(this.hud.root, this.touch.root)
     bindKeyboard({
       isRacing: () => this.racing,
@@ -93,6 +100,7 @@ export class RaceSession {
     this.hud.clearNotice()
     this.hud.setTrack(name)
     this.hud.setTime(0)
+    this.fps?.reset()
     this.race.start(league, track)
   }
 
@@ -104,6 +112,7 @@ export class RaceSession {
   }
 
   resume(): void {
+    this.fps?.reset()
     this.race.resume()
   }
 

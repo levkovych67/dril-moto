@@ -1,9 +1,10 @@
-// src/shell/GameShell.ts — стан-машина екранів: вантажить пак, збирає двигун, веде
-// прогрес і перемикає DOM-екрани (screens/menus.ts). Усе, що живе під час заїзду
-// (цикл, HUD, ввід), — у RaceSession. Канвас лише для заїзду, меню — DOM.
-import DEV_PACK_URL from '../assets/dev-pack.mrg?url'
+// src/shell/GameShell.ts — стан-машина екранів: читає конфіг з URL, вантажить пак,
+// збирає двигун, веде прогрес, перемикає DOM-екрани (screens/menus.ts) і говорить із
+// сайтом (bridge.ts). Усе, що живе під час заїзду (цикл, HUD, ввід), — у RaceSession.
+import { bridge } from './bridge.ts'
+import { readConfig, type Config } from './config.ts'
 import { createEngine } from './engine.ts'
-import { decodeMrg } from './mrg.ts'
+import { loadPack } from './pack.ts'
 import { bestKey, emptyProgress, isTrackUnlocked, loadProgress, recordFinish, resetProgress, saveProgress, type Progress } from './Progress.ts'
 import { RaceSession } from './RaceSession.ts'
 import { el } from './screens/dom.ts'
@@ -12,10 +13,11 @@ import { createMenus, type MenuId, type Menus } from './screens/menus.ts'
 
 export type ScreenId = MenuId | 'race'
 
-// Префікс ключів localStorage; у Task 10 приходить з ?ns=
-const NS = 'dril-moto'
+const VERSION: string = import.meta.env.VITE_APP_VERSION ?? 'dev'
 
 export class GameShell {
+  private cfg!: Config
+  private ns = ''
   private session!: RaceSession
   private menus!: Menus
   private progress: Progress = emptyProgress()
@@ -24,23 +26,31 @@ export class GameShell {
   private screen: ScreenId = 'splash'
 
   async start(root: HTMLElement): Promise<void> {
+    this.cfg = readConfig()
+    // пробні треки з ?debug&json= пишуть прогрес окремо й не чіпають справжній
+    this.ns = this.cfg.jsonUrl ? `${this.cfg.ns}:json` : this.cfg.ns
+    // iframe не бачить data-theme сайту: тема приходить параметром (spec, секція 1)
+    document.documentElement.dataset.theme = this.cfg.theme
     root.replaceChildren()
     const stage = el('div', 'stage')
     const canvas = el('canvas', 'game-canvas')
     stage.append(canvas)
     root.append(stage)
 
-    const buffer = await (await fetch(DEV_PACK_URL)).arrayBuffer()
-    // decodeMrg лише читає буфер: той самий буфер далі йде в LevelLoader; '_' двигун показує пробілом
-    this.names = decodeMrg(buffer).leagues.map((l) => l.map((t) => t.name.replaceAll('_', ' ')))
-    this.counts = [this.names[0].length, this.names[1].length, this.names[2].length]
-    this.progress = loadProgress(NS)
-    const engine = await createEngine(canvas, buffer)
-    this.session = new RaceSession(engine, {
-      onPaused: () => this.go('pause'),
-      onResumeRequest: () => this.resume(),
-      onFinish: (league, track, timeMs) => this.finish(league, track, timeMs),
-    })
+    const pack = await loadPack(this.cfg)
+    this.names = pack.names
+    this.counts = [pack.names[0].length, pack.names[1].length, pack.names[2].length]
+    this.progress = loadProgress(this.ns)
+    const engine = await createEngine(canvas, pack.buffer)
+    this.session = new RaceSession(
+      engine,
+      {
+        onPaused: () => this.go('pause'),
+        onResumeRequest: () => this.resume(),
+        onFinish: (league, track, timeMs) => this.finish(league, track, timeMs),
+      },
+      this.cfg.debug,
+    )
     this.menus = createMenus({
       progress: () => this.progress,
       trackNames: () => this.names,
@@ -54,7 +64,7 @@ export class GameShell {
       restart: () => this.restart(),
       toTracks: () => this.toTracks(),
       resetProgress: () => {
-        resetProgress(NS)
+        resetProgress(this.ns)
         this.progress = emptyProgress()
       },
       exit: () => this.exitGame(),
@@ -65,7 +75,11 @@ export class GameShell {
       engine.resize()
       engine.render()
     }).observe(stage)
-    this.go('splash')
+    // ?debug&json= одразу запускає заїзд (spec, «Авторинг»); інакше сплеш → меню
+    if (this.cfg.jsonUrl) this.startTrack(0, 0)
+    else this.go('splash')
+    // після першого кадру з грою сайт знімає скелетон
+    requestAnimationFrame(() => bridge.ready(VERSION))
   }
 
   private go(id: ScreenId): void {
@@ -103,18 +117,19 @@ export class GameShell {
     this.openTracks(this.session.league)
   }
 
-  /** «Вийти» з меню чи паузи. Task 10: сайт закриває гру через bridge.exit(). */
+  /** «Вийти» з меню чи паузи: сайт закриває гру; без сайту лишається головне меню. */
   private exitGame(): void {
     this.session.stop()
     this.go('main')
-    console.log('exit')
+    bridge.exit()
   }
 
   private finish(league: number, track: number, timeMs: number): void {
     const prevBestMs: number | undefined = this.progress.best[bestKey(league, track)]
     const r = recordFinish(this.progress, league, track, timeMs, this.counts)
     this.progress = r.progress
-    saveProgress(NS, this.progress)
+    saveProgress(this.ns, this.progress)
+    bridge.finished(league, track, timeMs, r.isBest)
     const canNext = this.nextTrack() !== null
     this.menus.finish.result = { timeMs, prevBestMs, isBest: r.isBest, canNext, leagueUnlocked: r.unlockedNextLeague }
     this.go('finish')
