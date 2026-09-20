@@ -30,8 +30,11 @@ jobs:
           if find dist -name '*.mrg' -o -name 'logo*' -o -name 'splash*' | grep .; then exit 1; fi
           if grep -l 'data:application/octet-stream' dist/assets/*.js; then exit 1; fi
       - name: dist.zip (вміст dist/ у корені архіву)
-        run: cd dist && zip -r ../dist.zip .
+        run: |
+          rm -f dist.zip
+          cd dist && zip -r ../dist.zip .
       - name: GitHub Release
-        run: gh release create "$GITHUB_REF_NAME" dist.zip --title "Дріл Мото $GITHUB_REF_NAME" --notes "Зміни — CHANGELOG.md. На сайті: node scripts/sync-moto-bundle.mjs --tag $GITHUB_REF_NAME"
+        run: |
+          gh release create "$GITHUB_REF_NAME" dist.zip --title "Дріл Мото $GITHUB_REF_NAME" --notes "На сайті: node scripts/sync-moto-bundle.mjs --tag $GITHUB_REF_NAME"
         env:
           GH_TOKEN: ${{ github.token }}
