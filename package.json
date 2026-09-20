@@ -1,7 +1,7 @@
 {
   "name": "drill-moto",
   "private": true,
-  "version": "0.1.1",
+  "version": "0.1.2",
   "license": "GPL-2.0",
   "type": "module",
   "scripts": {
@@ -9,7 +9,7 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "check": "node scripts/check-mrg.mjs && node scripts/check-race-loop.mjs && node scripts/check-progress.mjs && node scripts/check-palette.mjs",
+    "check": "node scripts/check-mrg.mjs && node scripts/check-race-loop.mjs && node scripts/check-progress.mjs && node scripts/check-palette.mjs && node scripts/check-bridge.mjs",
     "sim": "node scripts/sim-track.mjs",
     "dev-pack": "node scripts/build-dev-pack.mjs",
     "sprites:placeholder": "node scripts/make-placeholder-sprites.mjs",
