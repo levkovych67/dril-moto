@@ -40,8 +40,8 @@ export const strings = {
   about: {
     heading: 'Про гру',
     text: ['Дріл Мото — мототріал у стилі класики 2004 року.', 'Механіка — з відкритого порту gravity-defied-web (GPL-2.0).'],
-    source: 'Наш код: github.com/ZhekaGrem/drill-moto',
-    sourceUrl: 'https://github.com/ZhekaGrem/drill-moto',
+    source: 'Наш код: github.com/levkovych67/dril-moto',
+    sourceUrl: 'https://github.com/levkovych67/dril-moto',
     disclaimer: 'Гра не повʼязана з Codebrew Software; треки, графіка й назва — наші.',
     version: (v: string) => `Версія ${v}`,
     back: 'Назад',
