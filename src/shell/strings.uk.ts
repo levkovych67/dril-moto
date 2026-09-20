@@ -1,6 +1,7 @@
 // src/shell/strings.uk.ts — усі рядки оболонки. Назва гри — «Дріл Мото».
 export const strings = {
   title: 'Дріл Мото',
+  error: { startup: 'Не вдалося завантажити гру. Спробуйте оновити сторінку.' },
   main: { play: 'Грати', records: 'Рекорди', about: 'Про гру', exit: 'Вийти' },
   leagues: {
     heading: 'Ліга',

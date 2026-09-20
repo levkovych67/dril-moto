@@ -1,12 +1,16 @@
+import './shell/theme.css'
 import './shell/shell.css'
 import { GameShell } from './shell/GameShell.ts'
+import { strings } from './shell/strings.uk.ts'
 
 const root = document.getElementById('root')
 
 if (!(root instanceof HTMLDivElement)) throw new Error('Missing #root container')
 new GameShell().start(root).catch((error: unknown) => {
-  const pre = document.createElement('pre')
-  pre.className = 'error-view'
-  pre.textContent = error instanceof Error ? error.stack ?? error.message : String(error)
-  root.replaceChildren(pre)
+  console.error('Dril Moto failed to start', error)
+  const errorView = document.createElement('p')
+  errorView.className = 'error-view'
+  errorView.setAttribute('role', 'alert')
+  errorView.textContent = strings.error.startup
+  root.replaceChildren(errorView)
 })

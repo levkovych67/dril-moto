@@ -5,9 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="description" content="Дріл Мото — мототріал у браузері" />
     <title>Дріл Мото</title>
+    <!-- тема до першого кадру: інакше до виконання модуля темна тема блимає білим -->
+    <script>document.documentElement.dataset.theme = new URLSearchParams(location.search).get('theme') === 'dark' ? 'dark' : 'light'</script>
+    <!-- Bold — шрифт заголовка сплешу-заглушки нижче: preload тягне його паралельно з JS і CSS -->
+    <link rel="preload" href="/fonts/e-ukraine/e-Ukraine-Bold.woff2" as="font" type="font/woff2" crossorigin />
   </head>
   <body>
-    <div id="root"></div>
+    <!-- сплеш-заглушка: перший кадр і LCP документа гри; GameShell прибирає її над справжнім сплешем -->
+    <div id="root"><section class="screen" data-screen="boot"><h1 class="title">Дріл Мото</h1></section></div>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

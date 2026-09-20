@@ -1,0 +1,61 @@
+/* src/shell/theme.css — токени сайту для гри + шрифт e-Ukraine.
+   Скопійовано з drill_shop/src/app/globals.css. Оновлювати руками при зміні палітри сайту.
+   Токени, які читає канвас (Task 12), лишаються у форматі #rrggbb. */
+:root {
+  --background: #ffffff;
+  --surface-card: #ffffff;
+  --text-primary: #000000;
+  --text-secondary: #606060;
+  --text-tertiary: #6e6e6e;
+  --border-subtle: #d6dde4;
+  --accent: #0073e6;
+  --btn-primary: #000000;
+  --btn-primary-fg: #ffffff;
+  --btn-primary-hover-fg: #000000;
+  --radius-pill: 100px;
+  --gradient-brand: linear-gradient(35.8deg, #c3aab2 -4.77%, #99eecc 46.72%, #80c0c8 90.23%, #4b8bfa 134.46%);
+}
+
+[data-theme='dark'] {
+  color-scheme: dark;
+  --background: #101413;
+  --surface-card: #242b29;
+  --text-primary: #f2f4f3;
+  --text-secondary: #a7b0ac;
+  --text-tertiary: #97a09b;
+  --border-subtle: #2c3431;
+  --accent: #58a6ff;
+  --btn-primary: #f2f4f3;
+  --btn-primary-fg: #101413;
+}
+
+/* Шрифти лежать у public/fonts/e-ukraine/. Абсолютний шлях Vite з base './'
+   переписує відносно зібраного CSS. */
+@font-face {
+  font-family: 'e-Ukraine';
+  src: url('/fonts/e-ukraine/e-Ukraine-Light.woff2') format('woff2');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'e-Ukraine';
+  src: url('/fonts/e-ukraine/e-Ukraine-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'e-Ukraine';
+  src: url('/fonts/e-ukraine/e-Ukraine-Medium.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'e-Ukraine';
+  src: url('/fonts/e-ukraine/e-Ukraine-Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: block;
+}

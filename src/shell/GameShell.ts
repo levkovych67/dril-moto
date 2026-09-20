@@ -15,6 +15,26 @@ export type ScreenId = MenuId | 'race'
 
 const VERSION: string = import.meta.env.VITE_APP_VERSION ?? 'dev'
 
+/**
+ * Чекає, поки браузер покаже сплеш-заглушку з index.html, і лише тоді гра береться
+ * за пак, шрифти й двигун. Без LCP API (Safari) — перший кадр (paint); не довше
+ * BOOT_WAIT_MS.
+ */
+const BOOT_WAIT_MS = 500
+const bootPainted = (): Promise<void> =>
+  new Promise((resolve) => {
+    const type = PerformanceObserver.supportedEntryTypes.includes('largest-contentful-paint') ? 'largest-contentful-paint' : 'paint'
+    const observer = new PerformanceObserver(() => {
+      observer.disconnect()
+      resolve()
+    })
+    observer.observe({ type, buffered: true })
+    window.setTimeout(() => {
+      observer.disconnect()
+      resolve()
+    }, BOOT_WAIT_MS)
+  })
+
 export class GameShell {
   private cfg!: Config
   private ns = ''
@@ -31,13 +51,21 @@ export class GameShell {
     this.ns = this.cfg.jsonUrl ? `${this.cfg.ns}:json` : this.cfg.ns
     // iframe не бачить data-theme сайту: тема приходить параметром (spec, секція 1)
     document.documentElement.dataset.theme = this.cfg.theme
-    root.replaceChildren()
+    // Сплеш-заглушка з index.html лишається на екрані, доки не готовий справжній сплеш.
+    const boot = root.querySelector('[data-screen="boot"]')
+    await bootPainted()
     const stage = el('div', 'stage')
+    stage.hidden = true // до справжнього сплешу видно лише заглушку
     const canvas = el('canvas', 'game-canvas')
     stage.append(canvas)
     root.append(stage)
 
-    const pack = await loadPack(this.cfg)
+    // До першого кадру меню чекаємо 700 для заголовків і 500 для кнопок та HUD.
+    const fonts = Promise.all([
+      document.fonts.load('700 32px e-Ukraine'),
+      document.fonts.load('500 16px e-Ukraine'),
+    ]).catch(() => [])
+    const [pack] = await Promise.all([loadPack(this.cfg), fonts])
     this.names = pack.names
     this.counts = [pack.names[0].length, pack.names[1].length, pack.names[2].length]
     this.progress = loadProgress(this.ns)
@@ -75,11 +103,16 @@ export class GameShell {
       engine.resize()
       engine.render()
     }).observe(stage)
+    stage.hidden = false
     // ?debug&json= одразу запускає заїзд (spec, «Авторинг»); інакше сплеш → меню
     if (this.cfg.jsonUrl) this.startTrack(0, 0)
     else this.go('splash')
-    // після першого кадру з грою сайт знімає скелетон
-    requestAnimationFrame(() => bridge.ready(VERSION))
+    // Після першого кадру з грою сайт знімає скелетон і догружається Regular для тексту.
+    requestAnimationFrame(() => {
+      bridge.ready(VERSION)
+      boot?.remove()
+      document.fonts.load('400 16px e-Ukraine').catch(() => [])
+    })
   }
 
   private go(id: ScreenId): void {

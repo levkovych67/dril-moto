@@ -9,3 +9,6 @@
 Гра «Дріл Мото» не повʼязана з Codebrew Software. Усі права на оригінальну Gravity Defied, її назву, логотип і бренд належать Codebrew Software. У цьому репозиторії немає файлів Codebrew: оригінальні треки (levels.mrg), спрайти, логотип і сплеш не потрапили в жоден коміт форку; треки, графіка й назва — наші.
 
 Зміни відносно upstream перелічені в CHANGELOG.md.
+
+Шрифт e-Ukraine (`public/fonts/e-ukraine/`, файли без змін) — офіційний шрифт із
+https://thedigital.gov.ua/fonts, ліцензія CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/).
