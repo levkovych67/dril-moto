@@ -4,7 +4,7 @@
 import DEV_PACK_URL from '../assets/dev-pack.mrg?url'
 import { createEngine } from './engine.ts'
 import { decodeMrg } from './mrg.ts'
-import { bestKey, emptyProgress, isTrackUnlocked, loadProgress, recordFinish, saveProgress, type Progress } from './Progress.ts'
+import { bestKey, emptyProgress, isTrackUnlocked, loadProgress, recordFinish, resetProgress, saveProgress, type Progress } from './Progress.ts'
 import { RaceSession } from './RaceSession.ts'
 import { el } from './screens/dom.ts'
 import type { TrackCounts } from './screens/LeaguesScreen.ts'
@@ -53,6 +53,10 @@ export class GameShell {
       resume: () => this.resume(),
       restart: () => this.restart(),
       toTracks: () => this.toTracks(),
+      resetProgress: () => {
+        resetProgress(NS)
+        this.progress = emptyProgress()
+      },
       exit: () => this.exitGame(),
     })
     this.session.mount(stage, canvas)
