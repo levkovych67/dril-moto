@@ -230,3 +230,80 @@ body,
   font-size: 22px;
   font-weight: 700;
 }
+
+/* Task 9: тач-керування. Нижні 30% екрана (мінімум 120px): ліворуч нахил назад/вперед,
+   праворуч гальмо і газ (газ удвічі ширший); кожна ціль ≥ 56×56px, між кнопками 8px.
+   На 320px усе влазить рівно: 8 + 56 + 8 + 56 + 8 + 56 + 8 + 112 + 8 = 320. */
+.touch {
+  position: absolute;
+  inset: auto 0 0 0;
+  height: max(30%, 120px);
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 8px max(8px, env(safe-area-inset-bottom));
+  pointer-events: none;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+/* ширини в частках: «назад», «вперед», «гальмо» — по 1, «ГАЗ» — 2; на 360px кожна ≈ 63px.
+   min-width: auto — група не стискається вужче за свої кнопки з min-width */
+.touch-group {
+  display: flex;
+  flex: 2 1 0;
+  gap: 8px;
+  min-width: auto;
+  pointer-events: auto;
+}
+.touch-group:last-child {
+  flex-grow: 3;
+}
+.touch-btn {
+  flex: 1 1 0;
+  min-width: 56px;
+  min-height: 56px;
+  padding: 0 4px;
+  border: 0;
+  border-radius: var(--radius-pill, 100px);
+  /* напівпрозора капсула поверх канвасу; підпис — колір фону (контраст ≥ 4.5:1 в обох
+     темах). Перший рядок — непрозорий фолбек для браузерів без color-mix(). */
+  background: var(--text-secondary, #606060);
+  background: color-mix(in srgb, var(--text-primary, #000) 55%, transparent);
+  color: var(--background, #fff);
+  font: inherit;
+  font-size: clamp(12px, 3.6vw, 16px); /* «гальмо» влазить у кнопку й на 320px */
+  font-weight: 500;
+  line-height: 1.2;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+}
+.touch-gas {
+  flex-grow: 2;
+  min-width: 112px;
+  background: var(--gradient-brand, #4b8bfa);
+  color: var(--btn-primary-hover-fg, #000);
+}
+/* натиснута кнопка темнішає без затримки (спека): :active і клас від pointerdown.
+   filter, а не фон: у темній темі фон капсули — світлий --text-primary, і більша
+   його частка кнопку б освітлювала */
+.touch-btn:active,
+.touch-btn.is-down {
+  filter: brightness(0.7);
+}
+/* десктоп: підказка клавіш під канвасом замість тач-кнопок */
+.hud-keys {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 6px 14px;
+  border-radius: var(--radius-pill, 100px);
+  background: color-mix(in srgb, var(--background, #fff) 80%, transparent);
+  color: var(--text-secondary, #606060);
+  font-size: 14px;
+  white-space: nowrap;
+}
