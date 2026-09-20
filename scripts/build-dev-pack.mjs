@@ -3,9 +3,10 @@
 // Правила геометрії (parseTrackJson) сюди підключає Task 3.
 import { readdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { encodeMrg } from '../src/shell/mrg.ts'
+import { parseTrackJson } from '../src/shell/trackJson.ts'
 
 const dir = new URL('../tracks/dev/', import.meta.url)
-const tracks = readdirSync(dir).filter((f) => f.endsWith('.json')).sort().map((f) => JSON.parse(readFileSync(new URL(f, dir), 'utf8')))
+const tracks = readdirSync(dir).filter((f) => f.endsWith('.json')).sort().map((f) => parseTrackJson(JSON.parse(readFileSync(new URL(f, dir), 'utf8'))))
 // три ліги: усі дев-треки в першій, по першому в решті — щоб LevelLoader мав що вантажити
 const pack = { leagues: [tracks, [tracks[0]], [tracks[0]]] }
 writeFileSync(new URL('../src/assets/dev-pack.mrg', import.meta.url), Buffer.from(encodeMrg(pack)))

@@ -4,6 +4,7 @@
 import assert from 'node:assert/strict'
 import { readFileSync, existsSync } from 'node:fs'
 import { encodeMrg, decodeMrg, START_SCALE } from '../src/shell/mrg.ts'
+import { parseTrackJson } from '../src/shell/trackJson.ts'
 
 let n = 0
 const check = (name, fn) => {
@@ -50,6 +51,20 @@ check('назва в .mrg лише ASCII', () => {
   assert.throws(() => encodeMrg({ leagues: [[{ ...simple, name: 'x'.repeat(40) }], [], []] }), /ASCII/)
 })
 
+const valid = { name: 'A', start: [100, 18], finish: [300, 0], points: [[0, 0], [150, 0], [250, 0], [300, 0], [500, 0]] }
+
+check('parseTrackJson приймає правильний трек і ловить помилки геометрії', () => {
+  assert.deepEqual(parseTrackJson(valid), valid)
+  const bad = (patch, re) => assert.throws(() => parseTrackJson({ ...valid, ...patch }), re)
+  bad({ points: [[0, 0], [150, 0], [140, 0], [300, 0], [500, 0]] }, /зростати/)
+  bad({ start: [300, 18], finish: [100, 0] }, /фініш/)
+  bad({ start: [100, -40] }, /вище землі/)
+  bad({ start: [100, 8] }, /вище землі/)
+  bad({ start: [20, 18] }, /першої точки/)
+  bad({ finish: [400, 0] }, /після finish/)
+  bad({ start: [100, 28], points: [[0, 0], [80, 0], [200, 60], [300, 60], [500, 60]] }, /вʼязне/)
+})
+
 const original = process.env.GD_ORIGINAL_MRG
 if (original && existsSync(original)) {
   check('калібрування: оригінальний пак читається і пишеться байт у байт', () => {
@@ -63,6 +78,7 @@ if (original && existsSync(original)) {
     assert.deepEqual(intro.points[0], [-380, 136])
     assert.deepEqual(intro.start, [-49, 24])
     assert.deepEqual(intro.finish, [433, 0])
+    assert.deepEqual(parseTrackJson(intro), intro)
     assert.ok(Buffer.from(encodeMrg(p)).equals(file), 'encodeMrg(decodeMrg(оригінал)) має збігатися байт у байт')
   })
 } else {
