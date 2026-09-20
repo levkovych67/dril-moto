@@ -1,7 +1,15 @@
+/* src/shell/shell.css — розкладка DOM-шару над канвасом. Кольори лише через токени
+   сайту: до Task 11 діють фолбеки після коми, у Task 11 значення приходять із theme.css. */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+/* Атрибут hidden мусить перемагати display: flex нижче, інакше
+   screen.hidden = true / hud.hidden = true нічого не ховають. */
 [hidden] {
   display: none !important;
 }
-
 html,
 body,
 #root {
@@ -9,34 +17,216 @@ body,
   width: 100%;
   height: 100%;
   overflow: hidden;
-  background: #f4f4f4;
+  background: var(--background, #fff);
+  color: var(--text-primary, #000);
+  font-family: 'e-Ukraine', system-ui, sans-serif;
+  touch-action: none; /* спека, ризик «iframe на iOS»: жодних жестів сторінки в грі */
 }
-
 .stage {
   position: relative;
   width: 100%;
   height: 100%;
 }
-
 .game-canvas {
   display: block;
   width: 100%;
   height: 100%;
   image-rendering: pixelated;
   touch-action: none;
-  background: #fff;
+  background: var(--background, #fff);
 }
-
-.hud {
-  position: absolute;
-  top: 12px;
-  right: 16px;
-  font: 500 18px/1 system-ui, sans-serif;
-  pointer-events: none;
-}
-
 .error-view {
-  margin: 16px;
+  margin: 0;
+  padding: 16px;
   white-space: pre-wrap;
   font: 13px/1.4 ui-monospace, monospace;
+}
+
+/* Екрани меню: шар на весь stage, колонка до 420px по центру */
+.screen {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 12px;
+  padding: 24px max(24px, calc((100% - 420px) / 2));
+  overflow-y: auto;
+  touch-action: pan-y; /* довгі меню (рекорди) гортаються пальцем, зум жестами — ні */
+  background: var(--background, #fff);
+}
+/* пауза й фініш — поверх замороженого кадру заїзду: гру видно крізь шар */
+.screen[data-screen='pause'],
+.screen[data-screen='finish'] {
+  background: color-mix(in srgb, var(--background, #fff) 82%, transparent);
+}
+.screen[data-screen='splash'] {
+  cursor: pointer;
+}
+.title,
+.heading {
+  margin: 0 0 12px;
+  text-align: center;
+  font-weight: 700;
+}
+.title {
+  font-size: 32px;
+}
+.heading {
+  font-size: 24px;
+}
+.btn,
+.card,
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  min-height: 52px;
+  padding: 0 20px;
+  border: 1px solid var(--border-subtle, #d6dde4);
+  border-radius: var(--radius-pill, 100px);
+  background: var(--surface-card, #fff);
+  color: var(--text-primary, #000);
+  font: inherit;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+}
+.btn {
+  justify-content: center;
+}
+.btn-primary {
+  border-color: var(--btn-primary, #000);
+  background: var(--btn-primary, #000);
+  color: var(--btn-primary-fg, #fff);
+}
+.btn-ghost {
+  border-color: transparent;
+  background: transparent;
+}
+.card {
+  min-height: 72px;
+  border-radius: 20px;
+}
+.card-hint,
+.row-hint {
+  font-weight: 400;
+  color: var(--text-secondary, #606060);
+}
+/* закрита ліга/трек: без opacity — підпис «Пройди ще …» мусить мати контраст ≥ 4.5:1
+   (спека, чекліст 14); закритість видно з пунктирної рамки, прозорого фону й замка */
+.card:disabled,
+.row:disabled {
+  border-style: dashed;
+  background: transparent;
+  cursor: default;
+}
+.lock {
+  width: 1em;
+  height: 1em;
+  margin-right: 6px;
+  vertical-align: -0.125em;
+}
+.btn:focus-visible,
+.card:focus-visible,
+.row:focus-visible,
+.about-link:focus-visible {
+  outline: 2px solid var(--accent, #0073e6);
+  outline-offset: 2px;
+}
+
+/* Фініш, рекорди, про гру */
+.finish-time {
+  margin: 0;
+  text-align: center;
+  font-size: 32px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.finish-best,
+.finish-note,
+.confirm,
+.about-text,
+.about-version {
+  margin: 0;
+  text-align: center;
+}
+.finish-best,
+.about-version {
+  color: var(--text-secondary, #606060);
+}
+.badge {
+  align-self: center;
+  margin: 0;
+  padding: 4px 12px;
+  border-radius: var(--radius-pill, 100px);
+  background: var(--btn-primary, #000);
+  color: var(--btn-primary-fg, #fff);
+  font-weight: 500;
+}
+.records {
+  width: 100%;
+  border-collapse: collapse;
+}
+.records th {
+  padding: 12px 0 4px;
+  text-align: left;
+}
+.records td {
+  padding: 4px 0;
+}
+.records-time {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.about-link {
+  align-self: center;
+  color: var(--accent, #0073e6);
+}
+
+/* HUD заїзду: сам шар прозорий для дотиків (тап по канвасу = рестарт після падіння),
+   кнопка паузи — ні */
+.hud {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.hud-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px 8px 16px;
+  background: color-mix(in srgb, var(--background, #fff) 70%, transparent);
+}
+.hud-name {
+  flex: 1;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-weight: 500;
+}
+.hud-time {
+  font-size: 18px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+.btn-hud {
+  width: auto;
+  min-height: 44px;
+  pointer-events: auto;
+}
+.hud-notice {
+  position: absolute;
+  top: 40%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(90%, 420px);
+  padding: 12px 16px;
+  border-radius: 20px;
+  background: color-mix(in srgb, var(--background, #fff) 85%, transparent);
+  text-align: center;
+  font-size: 22px;
+  font-weight: 700;
 }
